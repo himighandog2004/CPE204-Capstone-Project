@@ -1,0 +1,12 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+@plugin '@tailwindcss/typography';
+
+html {
+  scroll-behavior: smooth;
+}
+
+html, body {
+  font-family: 'Consolas', Courier, monospace;
+}
+

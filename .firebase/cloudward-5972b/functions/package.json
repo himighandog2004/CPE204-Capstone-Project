@@ -1,0 +1,21 @@
+{
+  "name": "cpe204-capstone-project",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "dependencies": {
+    "@lucide/svelte": "^0.507.0",
+    "@splidejs/splide": "^4.1.4",
+    "@splidejs/svelte-splide": "^0.2.9",
+    "@splinetool/runtime": "^1.9.89",
+    "firebase": "^11.6.1",
+    "@sveltejs/kit": "^2.16.0",
+    "firebase-frameworks": "^0.11.0",
+    "firebase-functions": "^6.0.1",
+    "firebase-admin": "^11.11.1"
+  },
+  "main": "server.js",
+  "engines": {
+    "node": "20"
+  }
+}
