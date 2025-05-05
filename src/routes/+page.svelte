@@ -1,5 +1,5 @@
 <script>
-  import { Github } from '@lucide/svelte';
+  import { Github, Mail } from '@lucide/svelte';
   import {ChartNoAxesCombined} from '@lucide/svelte';
   import {Boxes} from '@lucide/svelte';
   import {User} from '@lucide/svelte';
@@ -9,15 +9,15 @@
 <!-- Top -->
 <div id = "head" class="top-div bg-[#181818] w-full min-h-screen flex flex-col items-center">
   <!-- Header -->
-  <div class="header sticky top-0 z-999 bg-[#181818] w-full flex flex-col md:flex-row items-center justify-between p-4 py-10">
+  <div class="header sticky top-0 z-999 bg-[#181818] w-full flex flex-row md:flex-row items-center justify-between p-4 py-10">
     <!-- img - Cloudward -->
     <div class="logotitle flex items-center ml-10">
       <img src="/cloudward white.png" alt="Logo" class="w-15 h-15 mr-3">
       <a href = "#head" class="nav-link text-white text-3xl font-bold">CloudWard</a>
     </div>
     <!-- Navbar -->
-    <div class="navbar mt-4 md:mt-0">
-      <ul class="flex flex-col md:flex-row items-center justify-center space-y-2 md:space-y-0 md:space-x-5">
+    <div class="flex flex-row items-center justify-center">
+      <ul class="navbar flex flex-row items-center justify-center space-x-4">
         <li><a href="#mid-section" class="nav-link text-[#d9d9d9] text-lg font-bold">Features</a></li>
         <li><a href="#about-section" class="nav-link text-[#d9d9d9] text-lg font-bold">About</a></li>
         <li><a href="#footer" class="nav-link text-[#d9d9d9] text-lg font-bold">Contact </a></li>
@@ -99,20 +99,20 @@
     <p class="text-lg text-gray-700 max-w-3xl mx-auto text-center">
       CloudWard revolutionizes hospital management with a fully integrated, cloud-based solution designed for efficiency, security, and ease of use. Our platform streamlines administrative tasks, enhances patient care, and simplifies communication to ensure that healthcare providers can focus on what matters most.
     </p>
-    <div class="mt-10 flex flex-col md:flex-row items-center justify-center space-y-8 md:space-y-0 md:space-x-10">
-      <div class="about-card bg-gray-100 p-6 rounded-lg shadow-md">
+    <div class="mt-10 flex flex-row md:flex-row items-center justify-center space-y-8 md:space-y-0 md:space-x-10">
+      <div class="card-container bg-gray-100 p-6 rounded-lg shadow-md">
         <h3 class="text-xl font-semibold mb-2 text-gray-800">Efficient</h3>
         <p class="text-gray-600">
           Automate routine tasks and streamline patient management seamlessly.
         </p>
       </div>
-      <div class="about-card bg-gray-100 p-6 rounded-lg shadow-md">
+      <div class="card-container bg-gray-100 p-6 rounded-lg shadow-md">
         <h3 class="text-xl font-semibold mb-2 text-gray-800">Secure</h3>
         <p class="text-gray-600">
           Protect sensitive information with advanced security protocols and cloud storage.
         </p>
       </div>
-      <div class="about-card bg-gray-100 p-6 rounded-lg shadow-md">
+      <div class="card-container bg-gray-100 p-6 rounded-lg shadow-md">
         <h3 class="text-xl font-semibold mb-2 text-gray-800">Innovative</h3>
         <p class="text-gray-600">
           Embrace the future of healthcare with cutting-edge technology.
@@ -125,26 +125,26 @@
   <footer id = "footer" class="footer bg-[#f7374f] flex flex-row items-left justify-left py-10">
     <div class="fot flex flex-col items-left justify-center pl-15">
       <div class="flex flex-row items-center">
-        <img src = "/cloudward.png" alt = "Logo" class = "w-15 h-15 mr-3">
-        <h1 class="text-3xl font-bold text-white">CloudWard</h1>
+        <img src = "/cloudward white.png" alt = "Logo" class = "w-15 h-15 mr-3 mt-3">
+        <h1 class="text-3xl font-bold text-white mt-3">CloudWard</h1>
       </div>
-      <p class="text-white text-lg mt-4 ml-5">CloudWard takes the stress out of hospital management — so your team can focus on what matters most: care.</p>
-      <a href="https://github.com/himighandog2004/CPE204-Capstone-Project" target="_blank" class="github text-white"><Github size={32} color="#FFFF" class = "icong ml-5 mt-5 transform transition-transform duration-300 hover:scale-130" /></a>
+      <p class="text-[#181818] text-lg mt-2 ml-5">CloudWard takes the stress out of hospital management — so your team can focus on what matters most: care.</p>
+      <a href="https://github.com/himighandog2004/CPE204-Capstone-Project" target="_blank" class="github text-white"><Github size={32} color="#181818" class = "icong ml-5 mt-3 transform transition-transform duration-300 hover:scale-130" /></a>
+    </div>
+    <div class = "flex flex-col items-left top-0 pt-3 pl-27">
+      <h2 class="text-3xl font-bold text-white">Developers</h2>
+      <p class="text-[#181818] text-lg mt-4">Blaza, Andre</p>
+      <p class="text-[#181818] text-lg">Nicomedes, Brent Daniel</p>
+      <p class="text-[#181818] text-lg">Oreto, Angelito Jose</p>
     </div>
     <div class = "flex flex-col items-left top-0 pt-3 pl-30">
-      <h2 class="text-2xl font-bold text-white">Developers</h2>
-      <p class="text-[#d9d9d9] text-m mt-4">Blaza, Andre</p>
-      <p class="text-[#d9d9d9] text-m mt-1">Nicomedes, Brent Daniel</p>
-      <p class="text-[#d9d9d9] text-m mt-1">Oreto, Angelito Jose</p>
-    </div>
-    <div class = "flex flex-col items-left top-0 pt-3 pl-30">
-      <h2 class="text-2xl font-bold text-white">Contact Us</h2>
+      <h2 class="text-3xl font-bold text-white">Contact Us</h2>
       <a href="https://mail.google.com/mail/?view=cm&fs=1&to=2023-108219@rtu.edu.ph"
-      target="_blank" class="nav-link text-[#d9d9d9] text-m mt-4">2023-108219@rtu.edu.ph</a>
+      target="_blank" class="nav-link text-[#181818] text-lg mt-4 flex flex-row"> <Mail class= "mr-3"/> 2023-108219@rtu.edu.ph</a>
       <a href="https://mail.google.com/mail/?view=cm&fs=1&to=2023-106271@rtu.edu.ph"
-      target="_blank" class="nav-link text-[#d9d9d9] text-m mt-1">2023-106271@rtu.edu.ph</a>
+      target="_blank" class="nav-link text-[#181818] text-lg flex flex-row"> <Mail class = "mr-3"/> 2023-106271@rtu.edu.ph</a>
       <a href="https://mail.google.com/mail/?view=cm&fs=1&to=2023-109391@rtu.edu.ph"
-      target="_blank" class="nav-link text-[#d9d9d9] text-m mt-1">2023-109391@rtu.edu.ph</a>
+      target="_blank" class="nav-link text-[#181818] text-lg flex flex-row"> <Mail class = "mr-3" /> 2023-109391@rtu.edu.ph</a>
   </footer>
 </div>
 
