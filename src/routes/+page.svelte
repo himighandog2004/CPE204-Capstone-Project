@@ -16,7 +16,7 @@
       <a href = "#head" class="nav-link text-white text-3xl font-bold">CloudWard</a>
     </div>
     <!-- Navbar -->
-    <div class="flex flex-row items-center justify-center">
+    <div class="flex flex-row items-center justify-center mr-15">
       <ul class="navbar flex flex-row items-center justify-center space-x-4">
         <li><a href="#mid-section" class="nav-link text-[#d9d9d9] text-lg font-bold">Features</a></li>
         <li><a href="#about-section" class="nav-link text-[#d9d9d9] text-lg font-bold">About</a></li>
@@ -26,7 +26,7 @@
     <!-- Sign in and Register Button -->
     <div class="authenticate flex flex-col md:flex-row items-center justify-center mt-4 md:mt-0 mr-10">
       <a class="nav-link text-white font-bold mb-2 md:mb-0 md:mr-2" href = "/login">Sign In</a>
-      <button class="bg-[#F7374F] text-white font-bold py-2 px-4 rounded-full hover:bg-[#b02738] transition duration-300">Register</button>
+      <a href= "/register" class="bg-[#F7374F] text-white font-bold py-2 px-4 rounded-full hover:bg-[#b02738] transition duration-300">Register</a>
     </div>
   </div>
   <!-- Hero Section -->
@@ -44,7 +44,7 @@
       </button>
     </div>
     <!-- Hero right: empty column for additional content -->
-    <div class="hero-right w-1/2 md:w-1/2 flex items-center justify-center p-0 ml-10">
+    <div class="hero-right w-1/2 md:w-1/2 flex items-center justify-center p-0 mr-10">
       <Splide aria-labelby="site" options={{type:"loop", perPage: 1, autoplay: true, arrows:false, pagination: false, speed:5000, interval: 5000, pauseOnHover: false, pauseOnFocus: false}}>
         <SplideSlide>
           <img src="/reg.png" alt="Slide 1">
@@ -160,10 +160,7 @@
       font-size: 0.75rem; /* ~12px */
     }
     /* Make signin/register text and padding smaller */
-    .authenticate button {
-      font-size: 0.75rem;
-      padding: 0.375rem 0.75rem;
-    }
+
   }
   .nav-link {
     position: relative;
