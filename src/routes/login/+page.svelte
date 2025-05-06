@@ -1,20 +1,65 @@
 <script lang="ts">
+	import { goto } from "$app/navigation";
+  import Backbtn from "$lib/components/+backbtn.svelte";
+	import { auth, db } from "$lib/firebase";
+	import { KeyRound, Mail, User } from "@lucide/svelte";
+	import { prodErrorMap, signInWithEmailAndPassword } from "firebase/auth";
+	import { doc, getDoc } from "firebase/firestore";
+
     let selectedRole = 'Admin';
     const roles = ['Patient', 'Admin', 'Doctor'];
   
     function selectRole(role: string) {
       selectedRole = role;
     }
+
+    let isLoading = false; // Variable to hold loading state
+    let errorMessage = ''; // Variable to hold error message
+    let email = '';
+    let password = '';
+
+    async function login() {
+      isLoading = true; // Set loading to true when starting login
+      errorMessage = ''; // Reset error message
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const uid = userCredential.user.uid;
+        // Get the user's role from Firestore
+        const userDoc = await getDoc(doc(db, "users", uid));
+        const userData = userDoc.data();
+        if (!userData) {
+          errorMessage = "Invalid credentials. Please check your email and password.";
+          isLoading = false; // Set loading to false if user data is not found
+          return;
+        }
+
+        const storedRole = userData.role;
+
+        if (storedRole === selectedRole) {
+          // Navigate based on role
+          if (storedRole === "Admin") goto('/dashboard/admin');
+          else if (storedRole === "Patient") goto('/dashboard/patien');
+          else if (storedRole === "Doctor") goto('/dashboard/doctor');
+        } else {
+        alert("Selected role doesn't match your account.");
+        }
+      } catch (err) {
+        if (err instanceof Error){
+          errorMessage = "Invalid credentials. Please check your email and password."; // Show error message if login fails
+        }
+      } finally{
+        isLoading = false; // Set loading to false when login is complete
+      }
+}
+
   </script>
   
   <!-- Page Container -->
-  <div class="bg-[#181818] w-screen h-screen flex items-center justify-center">
+  <div class="bg-[#181818] w-screen h-screen flex items-center justify-center overflow-hidden">
     <!-- Login Card -->
-    <div class = "login-card rounded-xl bg-[#f7374f] flex flex-col items-center">
+    <div class = "login-card rounded-3xl bg-[#f7374f] flex flex-col items-center text-white">
       <!-- Back Btn -->
-      <a href = "/" class = "flex items-center justify-left w-full">
-        <img src = "/backbtn.png" alt = "Back Button" class = "w-10 h-10 mt-5 ml-5"/>
-      </a>
+      <Backbtn/>
       <!-- Logo -->
       <div class = "flex flex-col items-center justify-center">
         <img src = "/cloudward.png" alt = "Logo" class = "w-32 h-32 mb-5"/>
@@ -38,9 +83,35 @@
        {/each}
       </div>
       <!-- Login Form -->
-      
+      <form on:submit|preventDefault={login} class="flex flex-col items-center justify-evenly h-full w-full px-6 mt-3">
+        <label class="input input-bordered bg-[#181818]">
+          <Mail color="#FFFF"/>
+          <input class="text-white" type="text" bind:value={email} placeholder="E-Mail" />
+        </label>
+        <label class="input input-bordered bg-[#181818]">
+          <KeyRound color="#FFFF"/>
+          <input class="text-white" type="password" bind:value={password} placeholder="Password" />
+        </label>
+        <button type="submit" class="btn bg-white text-black hover:bg-green-600 w-1/2 font-bold">
+          {#if isLoading}
+            <span class="loading loading-spinner text-neutral"></span>
+          {:else}
+            Login
+          {/if}
+        </button>
+        <div class="flex flex-col items-center">
+          <p class="text-white text-sm">Don't have an account? <a href="/register" class="log-link font-bold text-[#181818]">Register</a></p>
+          <p class="text-white text-sm">Forgot your password? <a href="/forgotpass" class="log-link font-bold text-[#181818]">Reset</a></p>
+        </div>
+        {#if errorMessage}
+            <div class="toast">
+                <div role="alert" class="alert alert-error alert-soft mt-4 text-white rounded-lg">
+                    <span>{errorMessage}</span>
+                </div>
+            </div>
+        {/if}
+      </form>
     </div>
-
   </div>
   
   <style>
@@ -48,4 +119,24 @@
       width: 430px;
       height: 550px;
     }
+  
+  .log-link {
+    position: relative;
+    overflow: hidden;
+  }
+  .log-link::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background-color: white;
+    transition: width 0.3s ease, left 0.3s ease;
+  }
+  .log-link:hover::after{
+    width: 100%;
+    left: 0;
+  }
+
   </style>
