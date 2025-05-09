@@ -1,0 +1,1 @@
+function u(n,t,i){return Array.prototype.slice.call(n,t,i)}function e(n){return n.bind.apply(n,[null].concat(u(arguments,1)))}function r(n,t){return typeof t===n}e(r,"function");e(r,"string");e(r,"undefined");

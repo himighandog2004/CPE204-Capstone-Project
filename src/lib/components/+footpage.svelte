@@ -34,7 +34,7 @@
         width: 50px;
         height: 50px;
     }
-  
+
     .fot{
         position:relative;
         width: 450px;
@@ -48,4 +48,25 @@
         height: 280px;
         background-color: #f7374f;
     }
+
+    .nav-link {
+    position: relative;
+    overflow: hidden;
+    }
+
+    .nav-link::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      width: 0;
+      height: 2px;
+      background-color: white;
+      transition: width 0.3s ease, left 0.3s ease;
+    }
+    .nav-link:hover::after{
+      width: 100%;
+      left: 0;
+    }
+
   </style>

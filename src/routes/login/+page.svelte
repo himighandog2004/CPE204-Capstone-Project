@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { goto } from "$app/navigation";
   import Backbtn from "$lib/components/+backbtn.svelte";
+	import BackgroundBeams from "$lib/components/ui/BackgroundBeams/BackgroundBeams.svelte";
 	import { auth, db } from "$lib/firebase";
 	import { KeyRound, Mail, User } from "@lucide/svelte";
 	import { prodErrorMap, signInWithEmailAndPassword } from "firebase/auth";
 	import { doc, getDoc } from "firebase/firestore";
 
-    let selectedRole = 'Admin';
+    let selectedRole = '';
     const roles = ['Patient', 'Admin', 'Doctor'];
   
     function selectRole(role: string) {
@@ -38,7 +39,7 @@
         if (storedRole === selectedRole) {
           // Navigate based on role
           if (storedRole === "Admin") goto('/dashboard/admin');
-          else if (storedRole === "Patient") goto('/dashboard/patien');
+          else if (storedRole === "Patient") goto('/dashboard/patient');
           else if (storedRole === "Doctor") goto('/dashboard/doctor');
         } else {
         alert("Selected role doesn't match your account.");
@@ -56,6 +57,7 @@
   
   <!-- Page Container -->
   <div class="bg-[#181818] w-screen h-screen flex items-center justify-center overflow-hidden">
+    
     <!-- Login Card -->
     <div class = "login-card rounded-3xl bg-[#f7374f] flex flex-col items-center text-white">
       <!-- Back Btn -->
@@ -63,7 +65,8 @@
       <!-- Logo -->
       <div class = "flex flex-col items-center justify-center">
         <img src = "/cloudward.png" alt = "Logo" class = "w-32 h-32 mb-5"/>
-        <h1 class = "text-3xl text-white font-bold mb-1">CloudWard</h1>
+        <h1 class = "text-3xl text-white font-bold">CloudWard</h1>
+        <p class= "text-white text-sm mb-2">Login as:</p>
       </div>
       <!-- Role Menu -->
       <div class = "menu menu-horizontal bg-[#181818] rounded-xl">
@@ -83,16 +86,16 @@
        {/each}
       </div>
       <!-- Login Form -->
-      <form on:submit|preventDefault={login} class="flex flex-col items-center justify-evenly h-full w-full px-6 mt-3">
-        <label class="input input-bordered bg-[#181818]">
+      <form on:submit|preventDefault={login} class="flex flex-col items-center justify-evenly h-full w-full px-4">
+        <label class="input input-neutral">
           <Mail color="#FFFF"/>
           <input class="text-white" type="text" bind:value={email} placeholder="E-Mail" />
         </label>
-        <label class="input input-bordered bg-[#181818]">
+        <label class="input input-neutral">
           <KeyRound color="#FFFF"/>
           <input class="text-white" type="password" bind:value={password} placeholder="Password" />
         </label>
-        <button type="submit" class="btn bg-white text-black hover:bg-green-600 w-1/2 font-bold">
+        <button type="submit" class="btn btn-soft btn-info rounded-xl w-1/2 font-bold">
           {#if isLoading}
             <span class="loading loading-spinner text-neutral"></span>
           {:else}
@@ -112,8 +115,9 @@
         {/if}
       </form>
     </div>
+    
   </div>
-  
+
   <style>
     .login-card {
       width: 430px;

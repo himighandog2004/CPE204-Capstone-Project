@@ -11,3 +11,7 @@ html, body {
   font-family: Consolas, 'IBM Plex Mono', monospace;
 }
 
+html, body {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}

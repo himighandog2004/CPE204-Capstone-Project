@@ -3,6 +3,7 @@
 	import { Mail } from "@lucide/svelte";
 	import { auth } from "$lib/firebase"; // adjust path if needed
 	import { sendPasswordResetEmail } from "firebase/auth";
+	import Loadscrn from "$lib/components/+loadscrn.svelte";
 
 	let email = '';
 	let successMessage = '';
@@ -21,7 +22,7 @@
 		try {
 			await sendPasswordResetEmail(auth, email);
 			successMessage = 'Password reset email sent. Check your inbox.';
-            setTimeout(() => (window.location.href = "/login"), 2500); // Redirect after 2.5 seconds
+            setTimeout(() => (window.location.href = "/login"), 5000); // Redirect after 2.5 seconds
 		} catch (err) {
 			if (err instanceof Error) {
 				if (err.message.includes('user-not-found')) {
@@ -36,7 +37,9 @@
         }
 	}
 </script>
-
+{#if successMessage}
+	<Loadscrn/>
+{:else}
 <div class="flex flex-col justify-center items-center w-screen h-screen bg-[#181818]">
 	<!-- Card Container -->
 	<div class="w-100 h-90 bg-[#f7374f] rounded-3xl text-white p-6">
@@ -54,6 +57,16 @@
 					<Mail color="#FFFF"/>
 					<input class="text-white w-full bg-transparent outline-none" type="email" bind:value={email} placeholder="E-Mail" />
 				</label>
+				<div class="mt-4">
+					<button type="submit" class="btn btn-soft btn-info" on:click={resetPassword}>
+						{#if isLoading}
+							<span class="loading loading-spinner text-neutral"></span>
+						{:else}
+							Reset Password
+						{/if}
+					</button>
+					<a href="/login" class="btn btn-soft btn-error">Cancel</a>
+				</div>
 			</fieldset>
 
 			<!-- Messages -->
@@ -73,16 +86,6 @@
 			{/if}
 		</div>
 
-		<!-- Submit Button -->
-		<div class="flex flex-row items-center justify-center space-x-3 mt-5 mr-22">
-			<button type="button" class="btn bg-[#181818] hover:bg-indigo-700" on:click={resetPassword}>
-                {#if isLoading}
-                    <span class="loading loading-spinner text-neutral"></span>
-                {:else}
-                    Reset Password
-                {/if}
-            </button>
-			<a href="/login" class="btn bg-[#181818] hover:bg-red-500">Cancel</a>
-		</div>
 	</div>
 </div>
+{/if}
