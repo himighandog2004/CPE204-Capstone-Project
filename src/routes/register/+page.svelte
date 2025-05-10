@@ -25,15 +25,29 @@
 			const userCredential = await createUserWithEmailAndPassword(auth, email, password);
 			const user = userCredential.user;
 
+			// Calculate age from birthdate
+			let age = 0;
+			if (birthdate) {
+				const birth = new Date(birthdate);
+				const today = new Date();
+				age = today.getFullYear() - birth.getFullYear();
+				const m = today.getMonth() - birth.getMonth();
+				if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+					age--;
+				}
+			}
+
 			await setDoc(doc(db, 'users', user.uid), {
 				name,
 				surname,
 				birthdate,
+				age,
 				sex,
 				phone,
 				address,
 				email: user.email,
 				role: 'Patient',
+				createdAt: new Date().toISOString(),
 			});
 
 			successMessage = 'Account created successfully.';
@@ -72,9 +86,9 @@
 		<form on:submit|preventDefault={register} class="flex flex-col items-center space-y-4 mt-3 w-full">
 			
 			<label class="flex flex-row justify-around w-1/2">
-				<input type="radio" name="radio-9" class="radio radio-info" required bind:group={sex} value="male"/>
+				<input type="radio" name="radio-9" class="radio radio-info" required bind:group={sex} value="Male"/>
 				<p class="text-white">Male</p>
-				<input type="radio" name="radio-9" class="radio radio-info" bind:group={sex} value="female" />
+				<input type="radio" name="radio-9" class="radio radio-info" bind:group={sex} value="Female" />
 				<p class="text-white">Female</p>
 			</label>
 

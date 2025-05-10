@@ -1,14 +1,18 @@
 <script>
 	import Footpage from '$lib/components/+footpage.svelte';
-	import Loadscrn from '$lib/components/+loadscrn.svelte';
-  import { Github, Mail } from '@lucide/svelte';
-  import {ChartNoAxesCombined} from '@lucide/svelte';
-  import {Boxes} from '@lucide/svelte';
-  import {User} from '@lucide/svelte';
-  import { Splide, SplideSlide } from "@splidejs/svelte-splide";
-	import { onMount, tick } from 'svelte';
   import { fade } from 'svelte/transition';
   import { BackgroundBeams } from '$lib';
+
+  
+  // @ts-ignore
+  function scrollToSection(id) {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+
+
 </script>
 
 <!-- Top -->
@@ -24,9 +28,9 @@
       <!-- Navbar -->
       <div class="flex flex-row items-center justify-center mr-15">
         <ul class="navbar flex flex-row items-center justify-center space-x-4">
-          <li><a href="#mid-section" class="nav-link text-[#d9d9d9] text-lg font-bold">Features</a></li>
-          <li><a href="#about-section" class="nav-link text-[#d9d9d9] text-lg font-bold">About</a></li>
-          <li><a href="#footer" class="nav-link text-[#d9d9d9] text-lg font-bold">Contact </a></li>
+          <li><button on:click={() => scrollToSection('mid-section')} class="nav-link text-[#d9d9d9] text-lg font-bold">Features</button></li>
+          <li><button on:click={() => scrollToSection('about-section')} class="nav-link text-[#d9d9d9] text-lg font-bold">About</button></li>
+          <li><button on:click={() => scrollToSection('footer')} class="nav-link text-[#d9d9d9] text-lg font-bold">Contact</button></li>
         </ul>
       </div>
       <!-- Sign in and Register Button -->

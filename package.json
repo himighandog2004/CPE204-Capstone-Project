@@ -38,6 +38,7 @@
 		"vite": "^6.2.5"
 	},
 	"dependencies": {
+		"@fortawesome/free-solid-svg-icons": "^6.7.2",
 		"@lucide/svelte": "^0.507.0",
 		"@splidejs/splide": "^4.1.4",
 		"@splidejs/svelte-splide": "^0.2.9",
@@ -45,6 +46,7 @@
 		"clsx": "^2.1.1",
 		"daisyui": "^5.0.35",
 		"firebase": "^11.6.1",
+		"svelte-fa": "^4.0.4",
 		"svelte-typewriter": "^3.2.3",
 		"tailwind-merge": "^3.2.0",
 		"three": "^0.176.0"

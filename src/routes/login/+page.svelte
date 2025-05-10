@@ -4,7 +4,7 @@
 	import BackgroundBeams from "$lib/components/ui/BackgroundBeams/BackgroundBeams.svelte";
 	import { auth, db } from "$lib/firebase";
 	import { KeyRound, Mail, User } from "@lucide/svelte";
-	import { prodErrorMap, signInWithEmailAndPassword } from "firebase/auth";
+	import { browserLocalPersistence, browserSessionPersistence, getAuth, prodErrorMap, setPersistence, signInWithEmailAndPassword } from "firebase/auth";
 	import { doc, getDoc } from "firebase/firestore";
 
     let selectedRole = '';
@@ -18,24 +18,39 @@
     let errorMessage = ''; // Variable to hold error message
     let email = '';
     let password = '';
+    let rememberMe = false;
 
     async function login() {
       isLoading = true; // Set loading to true when starting login
       errorMessage = ''; // Reset error message
       try {
+        const persistenceType = browserSessionPersistence;
+        await setPersistence(auth, persistenceType);
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const uid = userCredential.user.uid;
-        // Get the user's role from Firestore
-        const userDoc = await getDoc(doc(db, "users", uid));
-        const userData = userDoc.data();
+        // Get the user's role and birthdate from Firestore
+        const userDocRef = doc(db, "users", uid);
+        const userSnap = await getDoc(userDocRef); // Ensure user exists
+        const userData = userSnap.data();
         if (!userData) {
           errorMessage = "Invalid credentials. Please check your email and password.";
           isLoading = false; // Set loading to false if user data is not found
           return;
         }
-
+        // Set isActive to true on login
+        await import('firebase/firestore').then(({ updateDoc }) => updateDoc(userDocRef, { isActive: true }));
+        // Calculate and update age on every login
+        if (userData.birthdate) {
+          const birth = new Date(userData.birthdate);
+          const today = new Date();
+          let age = today.getFullYear() - birth.getFullYear();
+          const m = today.getMonth() - birth.getMonth();
+          if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+            age--;
+          }
+          await import('firebase/firestore').then(({ updateDoc }) => updateDoc(userDocRef, { age }));
+        }
         const storedRole = userData.role;
-
         if (storedRole === selectedRole) {
           // Navigate based on role
           if (storedRole === "Admin") goto('/dashboard/admin');
