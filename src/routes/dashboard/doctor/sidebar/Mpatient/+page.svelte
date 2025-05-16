@@ -2,10 +2,9 @@
   import { getContext, onDestroy, onMount } from 'svelte';
   import type { Writable } from 'svelte/store';
   import { db } from '$lib/firebase';
-  import { doc, updateDoc, arrayUnion, collection, getDocs } from 'firebase/firestore';
+  import { doc, updateDoc, arrayUnion, collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 
   const patientsStore = getContext('patients') as Writable<any[]>;
-  const appointmentsStore = getContext('appointments') as Writable<any[]>;
   let patients: any[] = [];
   let appointments: any[] = [];
   let selectedPatient: any = null;
@@ -20,16 +19,9 @@
   };
 
   let unsubPatients: (() => void) | undefined;
-  let unsubAppointments: (() => void) | undefined;
   if (patientsStore && typeof patientsStore.subscribe === 'function') {
     unsubPatients = patientsStore.subscribe((value: any[]) => {
       patients = value;
-    });
-  }
-
-  if (appointmentsStore && typeof appointmentsStore.subscribe === 'function') {
-    unsubAppointments = appointmentsStore.subscribe((value: any[]) => {
-      appointments = value;
     });
   }
 
@@ -41,26 +33,31 @@
   let loadingAppointments = true;
 
   onMount(async () => {
-    // Fetch appointments from Firestore directly
-    try {
-      loadingAppointments = true;
-      const snapshot = await getDocs(collection(db, 'appointments'));
+    // Listen to Firestore appointments collection in real-time
+    const q = query(collection(db, 'appointments'), orderBy('createdAt', 'desc'));
+    const unsubAppointmentsListener = onSnapshot(q, (snapshot) => {
       appointments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    } catch (e) {
-      console.error('Failed to fetch appointments:', e);
-    } finally {
       loadingAppointments = false;
-    }
+    }, (error) => {
+      console.error('Failed to fetch appointments:', error);
+      loadingAppointments = false;
+    });
+
+    return () => {
+      unsubAppointmentsListener();
+    };
   });
 
   // Only show patients the doctor has/had appointments with
   $: filteredPatients = patients.filter(p =>
-    appointments.some(a => a.doctorId === doctorId && (a.patientId === (p.id || p.uid || p.docId) || a.patientName === p.name))
+    appointments.some(a => 
+      a.doctorId === doctorId && 
+      (a.patientId === p.id || a.patientId === p.uid || a.patientId === p.docId)
+    )
   );
 
   onDestroy(() => {
     unsubPatients && unsubPatients();
-    unsubAppointments && unsubAppointments();
   });
 
   function viewPatientDetails(patient) {
