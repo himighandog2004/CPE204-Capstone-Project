@@ -4,7 +4,7 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"dev": "vite dev",
+		"dev": "vite --host",
 		"build": "vite build",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
@@ -20,10 +20,10 @@
 		"@sveltejs/adapter-static": "^3.0.8",
 		"@sveltejs/kit": "^2.16.0",
 		"@sveltejs/vite-plugin-svelte": "^5.0.0",
+		"@tailwindcss/aspect-ratio": "^0.4.2",
 		"@tailwindcss/forms": "^0.5.9",
 		"@tailwindcss/typography": "^0.5.15",
 		"@tailwindcss/vite": "^4.0.0",
-		"eslint": "^9.18.0",
 		"eslint-config-prettier": "^10.0.1",
 		"eslint-plugin-svelte": "^3.0.0",
 		"globals": "^16.0.0",
@@ -38,13 +38,18 @@
 		"vite": "^6.2.5"
 	},
 	"dependencies": {
+		"@fortawesome/free-solid-svg-icons": "^6.7.2",
 		"@lucide/svelte": "^0.507.0",
 		"@splidejs/splide": "^4.1.4",
 		"@splidejs/svelte-splide": "^0.2.9",
 		"@splinetool/runtime": "^1.9.89",
+		"cally": "^0.8.0",
 		"clsx": "^2.1.1",
+		"daisyui": "^5.0.35",
 		"firebase": "^11.6.1",
+		"svelte-fa": "^4.0.4",
 		"svelte-typewriter": "^3.2.3",
-		"tailwind-merge": "^3.2.0"
+		"tailwind-merge": "^3.2.0",
+		"three": "^0.176.0"
 	}
 }

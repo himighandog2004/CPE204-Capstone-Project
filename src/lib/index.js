@@ -1,2 +1,3 @@
-// place files you want to import through the `$lib` alias in this folder.
-import { Splide, SplideSlide } from '@splidejs/svelte-splide';
+import BackgroundBeams from '$lib/components/ui/BackgroundBeams/BackgroundBeams.svelte';
+
+export { BackgroundBeams };
