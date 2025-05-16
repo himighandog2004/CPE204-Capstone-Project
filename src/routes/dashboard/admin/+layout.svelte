@@ -16,13 +16,16 @@
   let avatarUrl = 'https://static.vecteezy.com/system/resources/thumbnails/008/442/086/small_2x/illustration-of-human-icon-user-symbol-icon-modern-design-on-blank-background-free-vector.jpg';
   let loading = true;
   let patients = [];
+  let doctors = [];
   let userNameStore = writable('');
+  const doctorsStore = writable<any[]>([]); // Fix: initialize as array, not object
 
   // Set context synchronously in component initialization with the store
   setContext('patients', patientsStore);
   setContext('userName', userNameStore);
   setContext('appointments', appointmentsStore);
-
+  setContext('doctors', doctorsStore);
+  
   onMount(() => {
     const auth = getAuth();
     onAuthStateChanged(auth, async (user) => {
@@ -55,6 +58,8 @@
         const doctorsQuery = query(collection(db, 'users'), where('role', '==', 'Doctor'));
         const doctorSnapshot = await getDocs(doctorsQuery);
         doctorCount.set(doctorSnapshot.size);
+        doctors = doctorSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        doctorsStore.set(doctors);
       } catch (err) {
         console.error('Failed to load patient count:', err);
       } finally {
@@ -135,8 +140,6 @@
                     </summary>
                         <ul class="text-base w-50">
                             <li><a href="/dashboard/admin/sidebar/pharmacy">Pharmacy</a></li>
-                            <li><a href="/dashboard/admin/sidebar/equipment">Equipment</a></li>
-                            <!-- Add more here -->
                         </ul>
                     </details>
                 </li>
@@ -147,18 +150,12 @@
                     </a>
                 </li>
                 <li>
-                    <a href="/dashboard/admin/sidebar/analytics">
-                        <Activity />
-                        Analytics
-                    </a>
-                </li>
-                <li>
                     <a href="/dashboard/admin/sidebar/lab">
                         <Microscope />
                         Lab Integration
                     </a>
                 </li>
-                <li class="pt-4">
+                <li class="pt-4 mt-18 ">
                     <button on:click={handleLogout} class="btn btn-soft btn-info w-full flex items-center gap-2">
                         <LogOut />
                         Logout

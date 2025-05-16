@@ -5,7 +5,7 @@
   import { db } from '$lib/firebase';
   import Navsidebar from '$lib/components/+navsidebar.svelte';
   import Loadscrn from '$lib/components/+loadscrn.svelte';
-  import { Activity, Home, LogOut, Package, Receipt, Settings, Users } from '@lucide/svelte';
+  import { Activity, CalendarPlus2, ClipboardPlus, Home, LogOut, Package, Receipt, Settings, Users } from '@lucide/svelte';
   import { patientCount, doctorCount } from '$lib/stores/userData';
   import { patients as patientsStore } from '$lib/stores/patients';
   import { writable } from 'svelte/store';
@@ -87,70 +87,38 @@
           <!-- Sidebar Content Container -->
           <div class="flex flex-col items-start justify-start pl-1 font-extrabold">
             <!-- Menu -->
-            <ul class="menu w-full text-lg space-y-2">
+            <ul class="menu w-full text-lg space-y-2"> <!-- Eto yung container ng content ng sidebar dis ung babaguhin-->
                 <li>
-                    <a href="/dashboard/admin">
+                    <a href="/dashboard/patient">
                         <Home />
                         Home
                     </a>
                 </li>
                 <li>
-                    <details open>
-                    <summary>
-                        <img src="/bed-pulse-solid.png" class="w-6 h-5" alt="patient"/>
-                        Patient Records
-                    </summary>
-                        <ul class="text-base w-50">
-                            <li><a href="/dashboard/admin/sidebar/patientlist">Patient List</a></li>
-                            <li><a href="/dashboard/admin/sidebar/appointments">Appointments</a></li>
-                            <!-- Add more here -->
-                        </ul>
-                    </details>
+                    <a href="/dashboard/patient/sidebar/medical">
+                        <ClipboardPlus />
+                        Medical History
+                    </a>
                 </li>
                 <li>
                     <details open>
                     <summary>
-                        <Users />
-                        Staff Management
+                      <CalendarPlus2 />
+                      Appointments
                     </summary>
-                        <ul class="text-base w-50">
-                            <li><a href="/dashboard/admin/sidebar/doctorslist">Manage/Add Doctors</a></li>
-                            <li><a href="/dashboard/admin/sidebar/doctortopatient">Assign to Patient</a></li>
-                            <!-- Add more here -->
-                        </ul>
-                    </details>
+                    <ul class="text-base">
+
+                      <li><a href="/dashboard/patient/sidebar/appointments">Appointment History</a></li>
+                    </ul>
                 </li>
                 <li>
-                    <details open>
-                    <summary>
-                        <Package />
-                        Inventory
-                    </summary>
-                        <ul class="text-base w-50">
-                            <li><a href="/dashboard/admin/sidebar/pharmacy">Pharmacy</a></li>
-                            <li><a href="/dashboard/admin/sidebar/equipment">Equipment</a></li>
-                            <!-- Add more here -->
-                        </ul>
-                    </details>
-                </li>
-                <li>
-                    <a href="/dashboard/admin/sidebar/listbill">
+                    <a href="/dashboard/patient/sidebar/bill">
                         <Receipt />
                         Billing Overview
                     </a>
                 </li>
                 <li>
-                    <a href="/dashboard/admin/sidebar/analytics">
-                        <Activity />
-                        Analytics
-                    </a>
-                </li>
-                <li class="pt-4">
-                    <button on:click={handleLogout} class="btn btn-soft btn-info w-full flex items-center gap-2">
-                        <LogOut />
-                        Logout
-                    </button>
-                </li>
+                
             </ul>
 
           </div>

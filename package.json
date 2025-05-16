@@ -4,7 +4,7 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"dev": "vite dev",
+		"dev": "vite --host",
 		"build": "vite build",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
@@ -43,6 +43,7 @@
 		"@splidejs/splide": "^4.1.4",
 		"@splidejs/svelte-splide": "^0.2.9",
 		"@splinetool/runtime": "^1.9.89",
+		"cally": "^0.8.0",
 		"clsx": "^2.1.1",
 		"daisyui": "^5.0.35",
 		"firebase": "^11.6.1",

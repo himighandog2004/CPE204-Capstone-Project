@@ -1,6 +1,9 @@
 <script lang="ts">
   import { getContext, onDestroy } from 'svelte';
   import type { Writable } from 'svelte/store';
+  import { db } from '$lib/firebase';
+  import { doc, deleteDoc, updateDoc } from 'firebase/firestore';
+  import { getAuth, deleteUser } from 'firebase/auth';
 
   let patients: any[] = [];
   const patientsStore = getContext('patients') as Writable<any[]>;
@@ -20,6 +23,9 @@
   let sortField: keyof typeof patients[0] | '' = '';
   let sortAsc = true;
 
+  let selectedPatientIds = new Set<string>();
+  let lastSelectedIndex: number | null = null;
+
   function toggleSort(field: typeof sortField) {
     if (sortField === field) {
       sortAsc = !sortAsc;
@@ -31,6 +37,56 @@
 
   function capitalizeWords(str: string): string {
     return str?.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase()) ?? '';
+  }
+
+  function handleRowClick(event: MouseEvent, patientId: string, index: number) {
+    if (event.shiftKey && lastSelectedIndex !== null) {
+      // Range select
+      const start = Math.min(lastSelectedIndex, index);
+      const end = Math.max(lastSelectedIndex, index);
+      for (let i = start; i <= end; i++) {
+        selectedPatientIds.add(filteredPatients[i].id);
+      }
+    } else if (event.ctrlKey || event.metaKey) {
+      // Toggle selection
+      if (selectedPatientIds.has(patientId)) {
+        selectedPatientIds.delete(patientId);
+      } else {
+        selectedPatientIds.add(patientId);
+      }
+      lastSelectedIndex = index;
+    } else {
+      // Single select
+      selectedPatientIds = new Set([patientId]);
+      lastSelectedIndex = index;
+    }
+  }
+
+  async function eraseSelectedPatient() {
+    if (selectedPatientIds.size === 0) return;
+    // Remove from Firestore
+    for (const id of selectedPatientIds) {
+      try {
+        await deleteDoc(doc(db, 'users', id));
+      } catch (e) {
+        console.error('Failed to delete patient in Firestore:', e);
+      }
+      // Try to delete from Firebase Auth if this is the current user
+      try {
+        const auth = getAuth();
+        const user = auth.currentUser;
+        if (user && user.uid === id) {
+          await deleteUser(user);
+          // Optionally, redirect or show a message
+        }
+      } catch (e) {
+        console.error('Failed to delete user from Firebase Auth:', e);
+      }
+    }
+    // Remove from local store
+    patientsStore.update(list => list.filter(p => !selectedPatientIds.has(p.id)));
+    selectedPatientIds = new Set();
+    lastSelectedIndex = null;
   }
 
   $: filteredPatients = [...patients]
@@ -77,7 +133,7 @@
       <div class="space-x-2">
         <button class="btn btn-xs btn-soft btn-success" on:click={() => toggleSort('name')}>Sort by Name</button>
         <button class="btn btn-xs btn-soft btn-success" on:click={() => toggleSort('createdAt')}>Sort by Date</button>
-        <button class="btn btn-xs btn-soft btn-error">Remove Patient</button>
+        <button class="btn btn-xs btn-soft btn-error" on:click={eraseSelectedPatient} disabled={selectedPatientIds.size === 0}>Remove Patient</button>
       </div>
     </div>
   </div>
@@ -102,7 +158,11 @@
         </thead>
         <tbody>
           {#each filteredPatients as patient, i}
-            <tr>
+            <tr
+              class:selected={selectedPatientIds.has(patient.id)}
+              on:click={(e) => handleRowClick(e, patient.id, i)}
+              style="cursor:pointer;"
+            >
               <th>{i + 1}</th>
               <td>{capitalizeWords(patient.name)} {capitalizeWords(patient.surname)}</td>
               <td>{patient.birthdate || '-'}</td>
@@ -126,3 +186,10 @@
     </div>
   </div>
 </div>
+
+<style>
+  tr.selected {
+    background-color: #f7374f !important;
+    color: white;
+  }
+</style>

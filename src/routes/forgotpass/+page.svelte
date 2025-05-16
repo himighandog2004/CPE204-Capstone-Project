@@ -38,7 +38,7 @@
 	}
 </script>
 {#if successMessage}
-	<Loadscrn/>
+	<div class="w-screen min-h-screen flex items-center justify-center"><Loadscrn/></div>
 {:else}
 <div class="flex flex-col justify-center items-center w-screen h-screen bg-[#181818]">
 	<!-- Card Container -->

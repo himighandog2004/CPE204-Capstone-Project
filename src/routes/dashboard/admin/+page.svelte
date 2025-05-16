@@ -1,10 +1,13 @@
 <script lang="ts">
   import { patientCount, doctorCount } from '$lib/stores/userData';
-  import { onDestroy, getContext } from 'svelte';
+  import { onDestroy, getContext, onMount } from 'svelte';
   import type { Writable } from 'svelte/store';
+  import { onSnapshot, query, collection, where } from 'firebase/firestore';
+  import { db } from '$lib/firebase'; // Adjust the import based on your project structure
 
   let count = 0;
   let doctors = 0;
+  let appointments = 0;
   const unsubPatient = patientCount.subscribe(value => {
     count = value;
   });
@@ -32,11 +35,24 @@
     });
   }
 
+  function capitalizeWords(str: string): string {
+    return str?.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase()) ?? '';
+  }
+
+  onMount(() => {
+    // Listen to pending appointments in Firestore
+    const q = query(collection(db, 'appointments'), where('status', '==', 'Pending'));
+    unsubAppointments = onSnapshot(q, (snapshot) => {
+      appointments = snapshot.size;
+    });
+  });
+
   onDestroy(() => {
     unsubPatient();
     unsubDoctor();
     unsubPatients && unsubPatients();
     unsubUserName && unsubUserName();
+    unsubAppointments && unsubAppointments();
   });
 </script>
 
@@ -57,7 +73,7 @@
       <!-- Appointments Card -->
       <div class="bg-[#2c2c2c] rounded-xl shadow-md w-full p-6 flex flex-col items-center justify-center">
       <span class="text-2xl font-semibold text-white">Appointments</span>
-      <span class="text-5xl font-extrabold text-[#F5C45E] mt-2">--</span>
+      <span class="text-5xl font-extrabold text-[#F5C45E] mt-2">{appointments}</span>
       <span class="text-white mt-1">Upcoming</span>
       </div>
   </div>
@@ -86,7 +102,7 @@
                 .slice(0, 5) as patient, i}
                 <tr>
                   <th>{i === 0 ? 1 : i + 1}</th>
-                  <td>{patient.name} {patient.surname}</td>
+                  <td>{capitalizeWords(patient.name)} {capitalizeWords(patient.surname)}</td>
                   <td>{patient.createdAt && patient.createdAt.getTime() > 0 ? patient.createdAt.toLocaleDateString() : '-'}</td>
                   <td>
                     {#if patient.isActive === true}
