@@ -112,7 +112,7 @@
                             Patients
                         </summary>
                         <ul class="text-base">
-                            <li><a href="/dashboard/doctor/sidebar/Mpatient">Manage Patient</a></li>
+                            <li><a href="/dashboard/doctor/sidebar/Mpatient">Manage Patients</a></li>
                         </ul>
                     </details>
                 </li>

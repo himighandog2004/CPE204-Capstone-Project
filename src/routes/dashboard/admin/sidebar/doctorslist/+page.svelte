@@ -48,16 +48,19 @@ async function addDoctor() {
   errorMessage = '';
   successMessage = '';
   isLoading = true;
+
   try {
+    // Basic validation
     if (!name || !surname || !specialty || !email) {
       errorMessage = 'Please fill in all required fields.';
-      isLoading = false;
       return;
     }
-    // Register doctor in Firebase Auth
+
     const auth = getAuth();
+    const doctorPassword = password.trim() || 'cloudward';
     let userCredential;
-    const doctorPassword = password || 'cloudward';
+
+    // Try creating user in Firebase Auth
     try {
       userCredential = await createUserWithEmailAndPassword(auth, email, doctorPassword);
     } catch (err: any) {
@@ -65,42 +68,48 @@ async function addDoctor() {
         errorMessage = 'This email is already registered.';
       } else {
         errorMessage = 'Failed to register doctor in Auth.';
+        console.error('Auth error:', err);
       }
-      isLoading = false;
       return;
     }
-    // Add doctor to Firestore (users collection) with Auth UID as document ID
-    await setDoc(doc(db, 'users', userCredential.user.uid), {
+
+    const uid = userCredential.user.uid;
+
+    // Add to Firestore
+    await setDoc(doc(db, 'users', uid), {
       name,
       surname,
       specialty,
       email,
-      phone,
-      address,
+      phone: phone || '',
+      address: address || '',
       role: 'Doctor',
       isActive: false,
       createdAt: serverTimestamp(),
-      uid: userCredential.user.uid // Store the Auth UID in Firestore
+      uid
     });
-    // Update the doctors store reactively
+
+    // Update store
     doctorsStore.update(list => [
       ...list,
       {
-        id: userCredential.user.uid, // Use Auth UID as the id for login consistency
+        id: uid,
         name,
         surname,
         specialty,
         email,
-        phone,
-        address,
+        phone: phone || '',
+        address: address || '',
         role: 'Doctor',
         isActive: true,
         createdAt: new Date(),
-        uid: userCredential.user.uid
+        uid
       }
     ]);
+
     successMessage = 'Doctor registered successfully!';
-    // Reset form
+
+    // Reset form fields
     name = '';
     surname = '';
     specialty = '';
@@ -108,13 +117,15 @@ async function addDoctor() {
     phone = '';
     address = '';
     password = '';
+
   } catch (err) {
     errorMessage = 'Failed to register doctor.';
-    console.error(err);
+    console.error('Unexpected error:', err);
   } finally {
     isLoading = false;
   }
 }
+
 
 let searchQuery = '';
 let sortField: keyof typeof doctors[0] | '' = '';
@@ -290,7 +301,7 @@ async function eraseSelectedDoctor() {
               style="cursor:pointer;"
             >
               <th>{i + 1}</th>
-              <td class="overflow-hidden">{capitalizeWords(doctor.name)} {capitalizeWords(doctor.surname)}</td>
+              <td class="overflow-hidden">Dr. {capitalizeWords(doctor.name)} {capitalizeWords(doctor.surname)}</td>
               <td class="overflow-hidden">{doctor.specialty || '-'}</td>
               <td class="overflow-hidden">{doctor.phone || '-'}</td>
               <td class="overflow-hidden">{doctor.address || '-'}</td>

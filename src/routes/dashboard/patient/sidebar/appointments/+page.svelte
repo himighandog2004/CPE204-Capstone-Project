@@ -1,54 +1,140 @@
 <script lang="ts">
-  import { getContext } from 'svelte';
-  import type { Writable } from 'svelte/store';
+  import { onMount, onDestroy } from 'svelte';
+  import { getAuth, onAuthStateChanged } from 'firebase/auth';
+  import { db } from '$lib/firebase';
+  import { collection, query, where, onSnapshot, doc, updateDoc } from 'firebase/firestore';
 
-  // Retrieve patient's appointments from context
-  let appointments: any[] = [];
-  const patientStore = getContext('loggedInPatient') as Writable<any>;
+  let appointments: {
+    id: string;
+    date: any;
+    time: string;
+    doctor: string;
+    reason: string;
+    status: string;
+  }[] = [];
+  let loading = true;
+  let error: string | null = null;
+  let unsubAppointments: (() => void) | undefined;
 
-  let unsubPatient: (() => void) | undefined;
-  if (patientStore && typeof patientStore.subscribe === 'function') {
-    unsubPatient = patientStore.subscribe((value: any) => {
-      appointments = value.appointments || [];
+  function formatDate(date: any) {
+    if (!date) return '-';
+    const d = date.toDate ? date.toDate() : new Date(date);
+    return d.toLocaleDateString('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric'
     });
   }
+
+  async function cancelAppointment(appointmentId: string) {
+    try {
+      const appointmentRef = doc(db, 'appointments', appointmentId);
+      await updateDoc(appointmentRef, {
+        status: 'Cancelled'
+      });
+    } catch (err) {
+      console.error('Error cancelling appointment:', err);
+      error = 'Failed to cancel appointment';
+    }
+  }
+
+  onMount(() => {
+    const auth = getAuth();
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        error = 'Please login to view your appointments';
+        loading = false;
+        return;
+      }
+
+      try {
+        // Set up real-time listener for appointments
+        const appointmentsQuery = query(
+          collection(db, 'appointments'),
+          where('patientId', '==', user.uid)
+        );
+
+        unsubAppointments = onSnapshot(appointmentsQuery, (snap) => {
+          appointments = snap.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          } as any));
+          loading = false;
+        }, (err) => {
+          console.error('Error fetching appointments:', err);
+          error = 'Failed to load appointments';
+          loading = false;
+        });
+      } catch (err) {
+        console.error('Error in appointment setup:', err);
+        error = 'Failed to setup appointment listener';
+        loading = false;
+      }
+    });
+  });
+
+  onDestroy(() => {
+    if (unsubAppointments) unsubAppointments();
+  });
 </script>
 
-<div class="bg-gray-700 rounded-xl shadow-lg w-full p-5 flex flex-col items-center">
-  <h2 class="text-2xl font-bold text-white">📅 Appointment History</h2>
+<div class="p-6 bg-[#2c2c2c] rounded-2xl shadow-md text-white h-140">
+  <h2 class="text-2xl font-bold mb-4 text-white">My Appointments</h2>
 
-  {#if appointments.length > 0}
-    <div class="overflow-x-auto w-full mt-4">
-      <table class="table-auto w-full border border-gray-600 text-white">
-        <thead>
-          <tr class="bg-gray-800">
-            <th class="px-4 py-2">Date</th>
-            <th class="px-4 py-2">Doctor</th>
-            <th class="px-4 py-2">Reason</th>
-            <th class="px-4 py-2">Status</th>
+  {#if error}
+    <p class="text-red-400">{error}</p>
+  {/if}
+
+  {#if loading}
+    <p class="text-gray-400">Loading appointments...</p>
+  {:else if appointments.length > 0}
+    <div class="overflow-x-auto overflow-y-auto">
+      <table class="min-w-full text-left text-sm">
+        <thead class="bg-[#181818] text-gray-300 uppercase text-xs">
+          <tr>
+            <!-- Follow this table format -->
+            <th class="px-4 py-3">Date</th>
+            <th class="px-4 py-3">Time</th>
+            <th class="px-4 py-3">Doctor</th>
+            <th class="px-4 py-3">Reason</th>
+            <th class="px-4 py-3">Status</th>
+            <th class="px-4 py-3">Actions</th>
           </tr>
         </thead>
         <tbody>
-          {#each [...appointments].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) as appointment}
-          <tr class="border-t">
-            <td class="px-4 py-2">{appointment.date ? new Date(appointment.date).toLocaleDateString() : '-'}</td>
-            <td class="px-4 py-2">{appointment.doctor}</td>
-            <td class="px-4 py-2">{appointment.reason}</td>
-            <td class="px-4 py-2">
-              {#if appointment.status === 'completed'}
-                <span class="text-green-400 font-semibold">✔ Completed</span>
-              {:else if appointment.status === 'cancelled'}
-                <span class="text-red-400 font-semibold">✖ Cancelled</span>
-              {:else}
-                <span class="text-yellow-400 font-semibold">🕒 Upcoming</span>
-              {/if}
-            </td>
-          </tr>
+          {#each appointments as appt}
+            <tr class="border-b border-[#3a3a3a] hover:bg-[#1f1f1f]">
+              <td class="px-4 py-3">{formatDate(appt.date)}</td>
+              <td class="px-4 py-3">{appt.time}</td>
+              <td class="px-4 py-3">{appt.doctor}</td>
+              <td class="px-4 py-3">{appt.reason}</td>
+              <td class="px-4 py-3">
+                <span class="px-2 py-1 rounded-full text-xs font-semibold
+                  {appt.status === 'Pending' ? 'badge badge-warning' : ''}
+                  {appt.status === 'Completed' ? 'badge badge-success' : ''}
+                  {appt.status === 'Cancelled' ? 'badge badge-error' : ''}">
+                  {appt.status}
+                </span>
+              </td>              
+              <td class="px-4 py-3">
+                {#if appt.status === 'Pending'}
+                  <button class="btn btn-soft btn-error" on:click={() => cancelAppointment(appt.id)}>Cancel</button>
+                {:else}
+                  <span class="text-gray-500">-</span>
+                {/if}
+              </td>
+            </tr>
           {/each}
         </tbody>
       </table>
     </div>
   {:else}
-    <p class="text-white mt-4">No past appointments found.</p>
+    <p class="text-gray-400">You have no appointments yet.</p>
   {/if}
 </div>
+
+<style>
+  body {
+    background-color: #181818;
+  }
+</style>
