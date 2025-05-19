@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
     import { db } from '$lib/firebase';
-    import { collection, onSnapshot, query, orderBy, deleteDoc, doc } from 'firebase/firestore';
+    import { collection, onSnapshot, query, orderBy, deleteDoc, doc, getDocs, where } from 'firebase/firestore';
   
     let appointments: any[] = [];
     let unsubAppointments: (() => void) | undefined;
@@ -31,14 +31,20 @@
       }
     }
   
-    async function deleteAppointment(id: string) {
+  async function deleteAppointment(id: string) {
       if (confirm('Are you sure you want to delete this appointment?')) {
         try {
+          // First find and delete the associated bill
+          const billsQuery = query(collection(db, 'bills'), where('appointmentId', '==', id), where('type', '==', 'appointment'));
+          const billsSnap = await getDocs(billsQuery);
+          const deletePromises = billsSnap.docs.map(billDoc => deleteDoc(doc(db, 'bills', billDoc.id)));
+          await Promise.all(deletePromises);
+
+          // Then delete the appointment
           await deleteDoc(doc(db, 'appointments', id));
-          // Optionally, show a success message
         } catch (error) {
           console.error('Failed to delete appointment:', error);
-          // Optionally, show an error message
+          alert('Failed to delete appointment. Please try again.');
         }
       }
     }
@@ -110,8 +116,8 @@
                 <td>{appointment.time || '-'}</td>
                 <td>{appointment.doctor || '-'}</td>
                 <td>
-                  {#if appointment.status === 'Confirmed'}
-                    <div class="badge badge-success">Confirmed</div>
+                  {#if appointment.status === 'Completed'}
+                    <div class="badge badge-success">Completed</div>
                   {:else if appointment.status === 'Pending'}
                     <div class="badge badge-warning">Pending</div>
                   {:else}

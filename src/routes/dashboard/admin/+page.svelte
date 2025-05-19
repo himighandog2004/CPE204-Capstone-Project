@@ -35,6 +35,16 @@
     });
   }
 
+  // Define and subscribe to doctorsList from context
+  let doctorsList: any[] = [];
+  const doctorsStore = getContext('doctors') as Writable<any[]>;
+  let unsubDoctors: (() => void) | undefined;
+  if (doctorsStore && typeof doctorsStore.subscribe === 'function') {
+    unsubDoctors = doctorsStore.subscribe((value: any[]) => {
+      doctorsList = value;
+    });
+  }
+
   function capitalizeWords(str: string): string {
     return str?.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase()) ?? '';
   }
@@ -52,6 +62,7 @@
     unsubDoctor();
     unsubPatients && unsubPatients();
     unsubUserName && unsubUserName();
+    unsubDoctors && unsubDoctors();
     unsubAppointments && unsubAppointments();
   });
 </script>
@@ -124,12 +135,38 @@
     </div>
     <!-- Right -->
     <div class="card-container flex flex-col w-1/2 h-full bg-[#2c2c2c] rounded-xl shadow-md items-center p-5 pb-2 mt-6 ml-6">
-      <h1 class="text-2xl font-bold text-white mb-4">Dashboard Insights</h1>
-      <div class="flex flex-col items-center justify-center h-full w-full">
-        <p class="text-lg text-white">More analytics and widgets coming soon!</p>
-        <div class="mt-6 w-full flex flex-col items-center">
-          <div class="w-32 h-32 bg-blue-100 rounded-full flex items-center justify-center text-green-500 text-4xl font-bold mb-2">📊</div>
-          <span class="text-[#d9d9d9]">Stay tuned for updates</span>
+      <h1 class="text-2xl font-bold text-white mb-4">Recently Added Doctors</h1>
+      <div class="flex flex-row h-90 w-full pt-1 pb-1">
+        <div class="overflow-x-auto w-full rounded-box border border-base-content/3 bg-base-200">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Specialization</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {#each [...doctorsList]
+                .map(d => ({ ...d, createdAt: d.createdAt ? new Date(d.createdAt) : new Date(0) }))
+                .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+                .slice(0, 5) as doctor, i}
+                <tr>
+                  <th>{i === 0 ? 1 : i + 1}</th>
+                  <td>{capitalizeWords(doctor.name)} {capitalizeWords(doctor.surname)}</td>
+                  <td>{doctor.specialty}</td>
+                  <td>
+                    {#if doctor.isActive === true}
+                      <div class="badge badge-sm badge-success">Active</div>
+                    {:else}
+                      <div class="badge badge-sm badge-error">Inactive</div>
+                    {/if}
+                  </td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

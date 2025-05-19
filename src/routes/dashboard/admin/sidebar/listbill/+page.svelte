@@ -9,6 +9,8 @@
   let searchQuery = '';
   let sortField: keyof typeof bills[0] | '' = '';
   let sortAsc = true;
+  let showModal = false;
+  let selectedGroup: any = null;
 
   // Fetch all patients for name lookup
   async function fetchPatients() {
@@ -43,6 +45,16 @@
     }
   }
 
+  function openModal(group: any) {
+    selectedGroup = group;
+    showModal = true;
+  }
+
+  function closeModal() {
+    showModal = false;
+    selectedGroup = null;
+  }
+
   function capitalizeWords(str: string): string {
     return str?.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase()) ?? '';
   }
@@ -69,6 +81,35 @@
       }
       return 0;
     });
+
+  // Group bills by patient name
+  $: groupedBills = (() => {
+    const groups: Record<string, any> = {};
+    for (const bill of filteredBills) {
+      const patient = patients[bill.patientId] || {};
+      const name = `${capitalizeWords(patient.name || bill.patientName || '')} ${capitalizeWords(patient.surname || '')}`.trim();
+      if (!groups[name]) {
+        groups[name] = {
+          name,
+          bills: [],
+          total: 0,
+          pending: 0,
+          paid: 0
+        };
+      }
+      groups[name].bills.push(bill);
+      groups[name].total += Number(bill.amount) || 0;
+      if (bill.status === 'pending') groups[name].pending++;
+      if (bill.status === 'paid') groups[name].paid++;
+    }
+    return Object.values(groups);
+  })();
+
+  let expanded: Record<string, boolean> = {};
+
+  function toggleExpand(name: string) {
+    expanded = { ...expanded, [name]: !expanded[name] };
+  }
 </script>
 
 <div class="flex flex-col h-full w-full">
@@ -93,47 +134,30 @@
           <tr>
             <th>#</th>
             <th>Name</th>
-            <th>Type</th>
             <th>Amount</th>
-            <th>Status</th>
-            <th>Date</th>
             <th>Breakdown</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody>
-          {#if filteredBills.length === 0}
-            <tr><td colspan="7" class="text-center">No bills found.</td></tr>
+          {#if groupedBills.length === 0}
+            <tr><td colspan="5" class="text-center">No bills found.</td></tr>
           {:else}
-            {#each filteredBills as bill, i}
+            {#each groupedBills as group, i}
               <tr>
                 <th>{i + 1}</th>
-                <td>{capitalizeWords(patients[bill.patientId]?.name || bill.patientName || '')} {capitalizeWords(patients[bill.patientId]?.surname || '')}</td>
-                <td>{bill.type}</td>
-                <td>₱{bill.amount}</td>
+                <td>{group.name}</td>
+                <td>₱{group.total}</td>                
                 <td>
-                  {#if bill.status === 'paid'}
-                    <div class="badge badge-success">Paid</div>
-                  {:else if bill.status === 'pending'}
-                    <div class="badge badge-warning">Pending</div>
-                  {:else}
-                    <div class="badge badge-error">Other</div>
-                  {/if}
+                  <button 
+                    class="btn btn-xs btn-info" 
+                    type="button" 
+                    on:click={() => openModal(group)}
+                  >
+                    View Details
+                  </button>
                 </td>
-                <td>{bill.createdAt ? new Date(bill.createdAt.seconds * 1000).toLocaleString() : '-'}</td>
-                <td>
-                  <details>
-                    <summary class="btn btn-xs btn-info">View</summary>
-                    <ul class="list-disc p-2">
-                      {#if bill.type === 'appointment'}
-                        <li>Appointment Fee: ₱{bill.amount}</li>
-                      {:else if bill.type === 'labtest'}
-                        <li>Lab Test: {bill.testName || bill.test} - ₱{bill.amount}</li>
-                      {:else}
-                        <li>₱{bill.amount}</li>
-                      {/if}
-                    </ul>
-                  </details>
-                </td>
+                <td>{group.pending} Pending{group.paid ? `, ${group.paid} Paid` : ''}</td>
               </tr>
             {/each}
           {/if}
@@ -142,3 +166,78 @@
     </div>
   </div>
 </div>
+
+<!-- Modal -->
+{#if showModal && selectedGroup}
+  <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="bg-[#2c2c2c] rounded-xl shadow-xl p-6 w-[90%] max-w-3xl max-h-[80vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-2xl font-semibold text-white">
+          Bill Details - {selectedGroup.name}
+        </h3>
+        <button 
+          class="btn btn-soft btn-error"
+          on:click={closeModal}
+        >
+          X
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <div class="flex justify-between text-lg mb-4">
+          <span class="text-gray-300">Total Amount: <span class="text-white font-semibold">₱{selectedGroup.total}</span></span>
+          <span class="text-gray-300">
+            Status: 
+            <span class="text-yellow-400">{selectedGroup.pending} Pending</span>
+            {#if selectedGroup.paid}
+              , <span class="text-green-400">{selectedGroup.paid} Paid</span>
+            {/if}
+          </span>
+        </div>
+
+        <div class="space-y-4">
+          {#each selectedGroup.bills as bill}
+            <div class="bg-[#1f1f1f] rounded-lg p-4 space-y-2">
+              <div class="flex justify-between items-start">
+                <div class="space-y-1">
+                  <div class="text-lg font-medium">{capitalizeWords(bill.type)}</div>
+                  <div class="text-gray-400">
+                    {bill.createdAt 
+                      ? new Date(bill.createdAt.seconds * 1000).toLocaleString('en-US', {
+                          month: '2-digit',
+                          day: '2-digit',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })
+                      : '-'}
+                  </div>
+                </div>
+                <div class="text-right">
+                  <div class="text-lg font-semibold">₱{bill.amount}</div>
+                  <span class="px-2 py-1 rounded-full text-xs font-medium
+                    {bill.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400'}">
+                    {capitalizeWords(bill.status)}
+                  </span>
+                </div>
+              </div>
+
+              {#if bill.type === 'labtest'}
+                <div class="mt-2 pt-2 border-t border-gray-700">
+                  <span class="text-gray-400">Test: </span>
+                  <span class="text-white">{bill.testName || bill.test}</span>
+                </div>
+              {/if}
+              
+              {#if bill.description}
+                <div class="mt-2 text-gray-400 text-sm">
+                  {bill.description}
+                </div>
+              {/if}
+            </div>
+          {/each}
+        </div>
+      </div>
+    </div>
+  </div>
+{/if}

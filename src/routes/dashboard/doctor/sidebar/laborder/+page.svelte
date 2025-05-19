@@ -42,30 +42,70 @@ let labTestOptions = [
   { testName: 'Stool Test', category: 'Other', price: 200 }
 ];
 
-onMount(async () => {
-  const colRef = collection(db, 'laborders');
-  onSnapshot(colRef, (snapshot) => {
-    labOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  });
+let currentDoctorId = '';
 
-  // Get the logged-in doctor's UID
-  let doctorUid = '';
-  const auth = getAuth();
-  const user = auth.currentUser;
-  if (user) {
-    doctorUid = user.uid;
-  } else {
-    await new Promise(resolve => onAuthStateChanged(auth, u => { doctorUid = u?.uid || ''; resolve(undefined); }));
-  }
-  // Query appointments for this doctor
-  if (doctorUid) {
-    const apptQuery = query(collection(db, 'appointments'), where('doctorId', '==', doctorUid));
+onMount(async () => {
+  try {
+    // Get current doctor's ID
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (user) {
+      currentDoctorId = user.uid;
+    } else {
+      await new Promise(resolve => {
+        const unsubscribe = onAuthStateChanged(auth, u => {
+          if (u) {
+            currentDoctorId = u.uid;
+            unsubscribe();
+            resolve(undefined);
+          }
+        });
+      });
+    }
+
+    if (!currentDoctorId) {
+      errorMessage = 'Please log in to access this page';
+      return;
+    }
+
+    // Set up real-time listener for lab orders filtered by current doctor
+    const labOrdersQuery = query(
+      collection(db, 'laborders'),
+      where('doctorID', '==', currentDoctorId)
+    );
+    
+    onSnapshot(labOrdersQuery, (snapshot) => {
+      labOrders = snapshot.docs.map(doc => ({ 
+        id: doc.id, 
+        ...doc.data() 
+      })).sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds);
+    });
+
+    // Query appointments for this doctor to get patient list
+    const apptQuery = query(
+      collection(db, 'appointments'), 
+      where('doctorId', '==', currentDoctorId)
+    );
+    
     const apptSnap = await getDocs(apptQuery);
-    // Get unique patient names
-    const seen = new Set();
-    patientOptions = apptSnap.docs
-      .map(doc => ({ id: doc.data().patientId || doc.data().patientName, name: doc.data().patientName }))
-      .filter(p => p.name && !seen.has(p.name) && seen.add(p.name));
+    
+    // Get unique patients with their IDs
+    const patientsMap = new Map();
+    apptSnap.docs.forEach(doc => {
+      const data = doc.data();
+      if (data.patientId && data.patientName) {
+        patientsMap.set(data.patientId, {
+          id: data.patientId,
+          name: data.patientName
+        });
+      }
+    });
+    
+    patientOptions = Array.from(patientsMap.values());
+    
+  } catch (error) {
+    console.error('Error initializing lab orders:', error);
+    errorMessage = 'Failed to load patient data';
   }
 });
 
@@ -78,19 +118,24 @@ async function submitOrder() {
   }
   isLoading = true;
   try {
-    // Find the selected test's price
     const selectedTest = labTestOptions.find(t => t.testName === newOrder.test);
     const testPrice = selectedTest ? selectedTest.price : 0;
-    // Store the test price in the lab order document
+    
+    // Get patient details from patientOptions
+    const selectedPatient = patientOptions.find(p => p.name === newOrder.patient);
+    
     await addDoc(collection(db, 'laborders'), {
       ...newOrder,
       price: testPrice,
+      doctorID: currentDoctorId,
+      patientId: selectedPatient?.id, // Store patient ID
       createdAt: serverTimestamp()
     });
-    // Do NOT update patient billing here; billing is handled when the lab is resolved by admin
+    
     successMessage = 'Lab order submitted!';
     newOrder = { patient: '', test: '', status: 'Ordered' };
   } catch (e) {
+    console.error('Error submitting lab order:', e);
     errorMessage = 'Failed to submit lab order.';
   } finally {
     isLoading = false;
@@ -100,7 +145,7 @@ async function submitOrder() {
 
 <div class="p-5">
   <h1 class="text-3xl text-blue-600">Order Laboratory Test</h1>
-  <p class="text-sm text-red-500">*Claim lab results at lab desk.</p>
+  <p class="text-sm text-red-500">*Claim lab results at the Laboratory.</p>
   <form on:submit|preventDefault={submitOrder} class="mb-6 flex flex-col gap-3 max-w-md mt-3 space-y-2">
     <select class="input input-bordered h-12" bind:value={newOrder.patient} required>
       <option value="" disabled selected>Select Patient</option>
@@ -126,7 +171,13 @@ async function submitOrder() {
   <h2 class="text-xl mt-4">Recent Lab Orders</h2>
   <table class="table table-sm w-full mt-2">
     <thead>
-      <tr><th>#</th><td>Patient</td><td>Test</td><td>Status</td><td>Ordered</td></tr>
+      <tr>
+        <th>#</th>
+        <td>Patient</td>
+        <td>Test</td>
+        <td>Status</td>
+        <td>Ordered</td>
+      </tr>
     </thead>
     <tbody>
       {#each labOrders as order, i}

@@ -97,19 +97,14 @@
                 <li>
                     <a href="/dashboard/patient/sidebar/medical">
                         <ClipboardPlus />
-                        Medical History
+                        Medical Record
                     </a>
                 </li>
                 <li>
-                    <details open>
-                    <summary>
+                    <a href="/dashboard/patient/sidebar/appointments">
                       <CalendarPlus2 />
                       Appointments
-                    </summary>
-                    <ul class="text-base">
-
-                      <li><a href="/dashboard/patient/sidebar/appointments">Appointment History</a></li>
-                    </ul>
+                    </a>
                 </li>
                 <li>
                     <a href="/dashboard/patient/sidebar/bill">
